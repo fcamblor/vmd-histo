@@ -7,9 +7,11 @@ import cron from 'node-cron'
 
 const rootUrl = 'https://vitemadose.gitlab.io/vitemadose'
 
-cron.schedule('*/2 * * * *', function() {
+cron.schedule('*/2 * * * *', async () => {
     console.log(`${new Date().toISOString()} => Triggered task`)
-    refreshStats();
+    const start = Date.now();
+    await refreshStats();
+    console.log(`Refresh stats is over, it took ${Date.now()-start}ms`)
 });
 
 function lieuxParDepartements() {
