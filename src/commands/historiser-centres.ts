@@ -1,4 +1,4 @@
-/// <reference path="./types.d.ts" />
+/// <reference path="../../types.d.ts" />
 import {mkdir, readdir, readFile, writeFile} from "fs/promises";
 import fetch from 'node-fetch';
 import cron from 'node-cron'
@@ -6,6 +6,7 @@ import cron from 'node-cron'
 // const rootUrl = 'https://raw.githubusercontent.com/CovidTrackerFr/vitemadose/data-auto/data/output'
 
 const rootUrl = 'https://vitemadose.gitlab.io/vitemadose'
+const outputDir = `../../resultats`
 
 cron.schedule('*/2 * * * *', async () => {
     console.log(`${new Date().toISOString()} => Triggered task`)
@@ -27,9 +28,9 @@ function lieuxParDepartements() {
 }
 
 function statsLieux() {
-    return readdir('./resultats/lieux/', {})
+    return readdir(`${outputDir}/lieux/`, {})
         .then(files => {
-            return Promise.all(files.map(file => readFile(`./resultats/lieux/${file}`, 'utf8').then(content => JSON.parse(content))))
+            return Promise.all(files.map(file => readFile(`${outputDir}/lieux/${file}`, 'utf8').then(content => JSON.parse(content))))
         }).then(([...statsLieux]: StatsLieu[]) => statsLieux as StatsLieu[]);
 }
 
@@ -41,9 +42,9 @@ function refreshStats() {
         await Promise.all(lieuxParDepartement.map(lieuParDepartementAvecDepartement => {
             const {departement, ...lieuParDepartement} = lieuParDepartementAvecDepartement;
             return Promise.all([
-                writeFile(`./resultats/departements/${lieuParDepartementAvecDepartement.departement.code_departement}.json`, JSON.stringify(lieuParDepartement), 'utf8'),
-                mkdir(`./resultats/departements/historique/${lieuParDepartementAvecDepartement.departement.code_departement}/`, {recursive: true})
-                    .then(() => writeFile(`./resultats/departements/historique/${lieuParDepartementAvecDepartement.departement.code_departement}/${lieuParDepartementAvecDepartement.last_updated}.json`, JSON.stringify(lieuParDepartement), 'utf8'))
+                writeFile(`${outputDir}/departements/${lieuParDepartementAvecDepartement.departement.code_departement}.json`, JSON.stringify(lieuParDepartement), 'utf8'),
+                mkdir(`${outputDir}/departements/historique/${lieuParDepartementAvecDepartement.departement.code_departement}/`, {recursive: true})
+                    .then(() => writeFile(`${outputDir}/departements/historique/${lieuParDepartementAvecDepartement.departement.code_departement}/${lieuParDepartementAvecDepartement.last_updated}.json`, JSON.stringify(lieuParDepartement), 'utf8'))
             ])
         }));
 
@@ -101,7 +102,7 @@ function refreshStats() {
 
         await Promise.all(Array.from(lieuxInternalIdsAPersister).map(internalId => {
             const statsLieu = statsLieuxParInternalId.get(internalId)!;
-            return writeFile(`./resultats/lieux/${internalId}.json`, JSON.stringify(statsLieu), 'utf8')
+            return writeFile(`${outputDir}/lieux/${internalId}.json`, JSON.stringify(statsLieu), 'utf8')
         }));
 
         console.log(`${lieuxInternalIdsAPersister.size} lieux mis à jour !`);

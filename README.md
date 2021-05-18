@@ -8,7 +8,7 @@ Installer les dépendances : `npm ci`
 
 # Exécution
 
-Une fois les dépendances installées, lancer la commande suivante : `npx ts-node index.ts `
+Une fois les dépendances installées, lancer la commande suivante : `npx ts-node src/commands/historiser-centres.ts `
 
 # Mode de fonctionnement
 
