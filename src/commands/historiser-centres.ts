@@ -3,6 +3,8 @@ import cron from 'node-cron'
 import {Historique} from "../services/Historique";
 import {ViteMaDose} from "../services/ViteMaDose";
 import {Chronodoses} from "../services/Chronodoses";
+import {GitService} from "../services/GitService";
+import {outputDir} from "../services/Config";
 
 async function refreshStats() {
     const [lieuxParDepartement, statsLieux]: [LieuxParDepartementAvecDepartement[], StatsLieu[]] = await Promise.all([
@@ -21,6 +23,17 @@ async function refreshStats() {
     await Historique.INSTANCE.historiserCentresChronodose(centresChronodose);
 
     console.log(`${lieuxInternalIdsPersistes.size} lieux mis à jour !`);
+
+    if(lieuxInternalIdsPersistes.size) {
+        await GitService.INSTANCE.synchronizeContent([
+            {from: `${outputDir}/departements/*.json`, to: `departements/`},
+            {from: `${outputDir}/lieux/`, to: `lieux/`},
+            {from: `${outputDir}/lieux-candidats-chronodose/`, to: `lieux-candidats-chronodose/`},
+            {from: `${outputDir}/lieux-candidats-chronodose.json`, to: `lieux-candidats-chronodose.json`, avoidMkDir: true},
+        ]);
+
+        console.log("Files pushed to git repository !");
+    }
 }
 
 cron.schedule('*/2 * * * *', async () => {
