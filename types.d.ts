@@ -32,7 +32,7 @@ type AppointmentSchedule = {
 type Lieu = {
     appointment_count: number;
     departement: CodeDepartement;
-    location: Coordinates,
+    location: { longitude: number, latitude: number, city: string, cp: string },
     nom: string;
     url: string;
     internal_id: string;
@@ -57,22 +57,21 @@ type StatLieu = {
     chronodose_appointment_count: number|undefined;
 };
 
+type LieuSansStatsRdv = Omit<Lieu, "appointment_count"|"appointment_schedules"|"prochain_rdv">
+
 type StatsLieu = {
-    lieu: {
-        internal_id: string;
-        departement: CodeDepartement;
-        location: Coordinates,
-        nom: string;
-        url: string;
-        appointment_by_phone_only: boolean;
-        plateforme: TypePlateforme;
-        metadata: {
-            address: string;
-            phone_number: string|undefined;
-            business_hours: BusinessHours|undefined
-        },
-        type: TypeLieu;
-        vaccine_type: VaccineType
-    },
+    lieu: LieuSansStatsRdv;
     stats: StatLieu[];
+};
+
+type LieuCandidatAuxChronodoses = {
+    lieu: LieuSansStatsRdv;
+    statsLieuSurDernieresSecondes: StatLieu[];
+    coefsDirecteur: {
+        coefDirecteurStandard: number;
+        coefDirecteurChronodose: number;
+        duree: number;
+    }[];
+    moyenneCoefsDirecteursStandardParMinute: number;
+    moyenneCoefsDirecteursChronodoseParMinute: number;
 };

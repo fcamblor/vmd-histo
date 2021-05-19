@@ -1,5 +1,6 @@
-import {mkdir, readdir, readFile, writeFile} from "fs/promises";
+import {mkdir, readdir, readFile, rmdir, writeFile} from "fs/promises";
 import {outputDir} from "./Config";
+import {existsSync} from "fs";
 
 export class Historique {
     public static readonly INSTANCE = new Historique();
@@ -105,5 +106,25 @@ export class Historique {
         }
 
         return false;
+    }
+
+    async historiserCentresChronodose(lieuCandidatAuxChronodoses: LieuCandidatAuxChronodoses[]) {
+        if(existsSync(`${outputDir}/lieux-candidats-chronodose/`)) {
+            await rmdir(`${outputDir}/lieux-candidats-chronodose/`, {recursive: true});
+        }
+        await mkdir(`${outputDir}/lieux-candidats-chronodose/`, {recursive: true})
+
+        await Promise.all(lieuCandidatAuxChronodoses.map(candidat =>
+            writeFile(`${outputDir}/lieux-candidats-chronodose/${candidat.lieu.internal_id}.json`, JSON.stringify(candidat), 'utf8')
+        ));
+        await writeFile(`${outputDir}/lieux-candidats-chronodose.json`, JSON.stringify({
+            lieux: lieuCandidatAuxChronodoses.map(c => c.lieu.internal_id),
+            codePostaux: Array.from(lieuCandidatAuxChronodoses.reduce((codePostaux, lieu) => {
+                if(lieu.lieu.location?.cp) {
+                    codePostaux.add(lieu.lieu.location.cp);
+                }
+                return codePostaux;
+            }, new Set<string>()))
+        }), 'utf8');
     }
 }
