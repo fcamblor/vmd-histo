@@ -6,7 +6,10 @@ import {Chronodoses} from "../services/Chronodoses";
 import {GitService} from "../services/GitService";
 import {outputDir} from "../services/Config";
 
-async function refreshStats() {
+async function historiserCentres() {
+    console.log(`${new Date().toISOString()} => Started centre historisation`)
+    const start = Date.now();
+
     const [lieuxParDepartement, statsLieux]: [LieuxParDepartementAvecDepartement[], StatsLieu[]] = await Promise.all([
         ViteMaDose.INSTANCE.lieuxParDepartements(),
         Historique.INSTANCE.statsLieux()
@@ -34,11 +37,12 @@ async function refreshStats() {
 
         console.log("Files pushed to git repository !");
     }
+
+    console.log(`Refresh stats is over, it took ${Date.now()-start}ms`)
 }
 
-cron.schedule('*/2 * * * *', async () => {
-    console.log(`${new Date().toISOString()} => Triggered task`)
-    const start = Date.now();
-    await refreshStats();
-    console.log(`Refresh stats is over, it took ${Date.now()-start}ms`)
-});
+if(process.env.START_CRON) {
+    cron.schedule('*/2 * * * *', historiserCentres);
+    console.log("CRON started !")
+}
+historiserCentres();
