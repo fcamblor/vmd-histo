@@ -5,6 +5,7 @@ import {ViteMaDose} from "../services/ViteMaDose";
 import {Chronodoses} from "../services/Chronodoses";
 import {GitService} from "../services/GitService";
 import {outputDir} from "../services/Config";
+import {ensureDirectoryCreated} from "../services/FSUtils";
 
 async function historiserCentres() {
     console.log(`${new Date().toISOString()} => Started centre historisation`)
@@ -14,6 +15,8 @@ async function historiserCentres() {
         ViteMaDose.INSTANCE.lieuxParDepartements(),
         Historique.INSTANCE.statsLieux()
     ]);
+
+    await ensureDirectoryCreated(outputDir)
 
     const [_, lieuxInternalIdsPersistes] = await Promise.all([
         Historique.INSTANCE.historiserCentresParDepartements(lieuxParDepartement),

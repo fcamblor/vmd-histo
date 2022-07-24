@@ -1,6 +1,7 @@
 import {mkdir, readdir, readFile, rmdir, writeFile} from "fs/promises";
 import {outputDir} from "./Config";
 import {existsSync} from "fs";
+import {ensureDirectoryCreated} from "./FSUtils";
 
 export class Historique {
     public static readonly INSTANCE = new Historique();
@@ -8,6 +9,9 @@ export class Historique {
     }
 
     async statsLieux() {
+        if(!existsSync(`${outputDir}/lieux/`)) {
+            return Promise.resolve([] as StatsLieu[]);
+        }
         const files = await readdir(`${outputDir}/lieux/`, {});
         const statsLieux = await Promise.all(
             files.map(file => readFile(`${outputDir}/lieux/${file}`, 'utf8')
@@ -17,6 +21,9 @@ export class Historique {
     }
 
     async historiserCentresParDepartements(lieuxParDepartement: LieuxParDepartementAvecDepartement[]) {
+        await ensureDirectoryCreated(`${outputDir}/departements/`)
+        await ensureDirectoryCreated(`${outputDir}/departements/historique/`)
+
         await Promise.all(lieuxParDepartement.map(lieuParDepartementAvecDepartement => {
             const {departement, ...lieuParDepartement} = lieuParDepartementAvecDepartement;
             return Promise.all([
@@ -87,6 +94,7 @@ export class Historique {
             return results;
         }, new Set<string>());
 
+        await ensureDirectoryCreated(`${outputDir}/lieux/`)
 
         await Promise.all(Array.from(lieuxInternalIdsAPersister).map(internalId => {
             const statsLieu = statsLieuxParInternalId.get(internalId)!;
